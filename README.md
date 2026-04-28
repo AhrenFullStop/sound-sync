@@ -1,79 +1,103 @@
-# SoundSync Studio v3
+# 🎵 SoundSync Studio v3
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
+[![Node](https://img.shields.io/badge/Node-20+-339933?logo=node.js)](https://nodejs.org/)
+[![FFmpeg](https://img.shields.io/badge/FFmpeg-Ready-007800?logo=ffmpeg)](https://ffmpeg.org/)
 
-![SoundSync Studio Header](https://via.placeholder.com/1200x400?text=SoundSync+Studio+v3)
-
-**SoundSync Studio** is a complete, self-hosted web application for music producers, beatmakers, and artists who want to generate high-fidelity, audio-reactive YouTube videos directly from their `.mp3` or `.wav` masters. 
-
-Built with an advanced FFmpeg rendering engine, an integrated Gemini AI background generator, and a premium React UI, SoundSync turns raw tracks into polished, YouTube-ready `.mp4` visualizers with zero subscription fees.
-
-## Features
-- **Global Drag-and-Drop Ingestion:** Drag audio files directly onto the browser to instantly load them into the studio.
-- **Granular Typography Engine:** Complete layout decoupling. Move, scale, and align the Track Title, Artist, and Tags individually.
-- **Audio-Reactive Waveforms:** Generates fully synced visual waveforms from your audio with multiple style options (Bars, Pulse, Jagged), opacity, and positioning controls.
-- **Gemini AI Visual Generation:** Direct integration with Google's Imagen API. Just type a prompt, and it generates a beautiful 16:9 background image directly in your canvas.
-- **Visual FX & Overlays:** Enhance your renders with global vignette intensity and high-tech dynamic corner bracket overlays.
-- **Batch Processing:** Configure an entire album's worth of tracks in separate tabs, hit "PROCESS ALL", and the server will encode them sequentially.
-- **YouTube Integration:** *(Coming Soon)* Seamless authenticated YouTube batch uploading.
-
-## Tech Stack
-- **Frontend**: React 19, TypeScript, Vite, Vanilla CSS.
-- **Backend**: Node.js, Express, TypeScript, `fluent-ffmpeg`, `@google/genai`.
-- **Infrastructure**: Concurrent DEV servers utilizing `dotenv` and standard `multer` disk storage.
+**SoundSync Studio** is a high-performance, self-hosted web application designed for music producers and artists to generate professional, audio-reactive visualizers. Turn your `.mp3` or `.wav` masters into polished, YouTube-ready `.mp4` videos with zero subscription fees.
 
 ---
 
-## 🚀 Quick Start Guide
+## ✨ Experience the Studio
 
-### Prerequisites
-Before running SoundSync Studio, ensure you have the following installed on your system:
-1. **Node.js** (v18+)
-2. **FFmpeg**: Required for the rendering engine. 
-   - *Mac:* `brew install ffmpeg`
-   - *Windows:* [Download here](https://ffmpeg.org/download.html)
-   - *Linux:* `sudo apt install ffmpeg`
+![SoundSync Studio Main Interface](./public/assets/screenshots/studio_main.png)
 
-### 1. Clone the Repository
+---
+
+## 🚀 Key Features
+
+- **🎯 Precision Typography Control:** Complete layout decoupling. Move, scale, and align Title, Artist, and Tags individually with real-time preview.
+- **🌊 Audio-Reactive Waveforms:** High-fidelity waveforms synced perfectly to your audio. Choose from multiple styles (Bars, Pulse, Smooth) with customizable colors and glow.
+- **🤖 Gemini AI Visuals:** Integrated Google Imagen API. Generate stunning 16:9 backgrounds from text prompts directly within your workflow.
+- **⚙️ Pro Rendering Engine:** Powered by a robust FFmpeg pipeline using `libx264` and `aac` for maximum compatibility and quality.
+- **📦 Batch Processing:** Queue up entire albums. Configure multiple tracks in parallel and render them all with a single click.
+- **🎬 Visual Effects:** Dynamic corner brackets, vignette controls, and backdrop overlays to give your videos a premium cinematic feel.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** [React 19](https://react.dev/), TypeScript, Vite, Vanilla CSS
+- **Backend:** [Node.js](https://nodejs.org/), Express, TypeScript
+- **Processing:** [FFmpeg](https://ffmpeg.org/), [Sharp](https://sharp.pixelplumbing.com/)
+- **Intelligence:** [Google Gemini API](https://ai.google.dev/) (Imagen)
+
+---
+
+## 🏁 Quick Start Guide
+
+### 1️⃣ Prerequisites
+Ensure you have the following installed:
+- **Node.js** (v18+)
+- **FFmpeg** (Required for the rendering engine)
+  - `brew install ffmpeg` (Mac)
+  - `sudo apt install ffmpeg` (Linux)
+
+### 2️⃣ Installation
 ```bash
-git clone https://github.com/your-username/sound-sync.git
+# Clone the repository
+git clone https://github.com/AhrenFullStop/sound-sync.git
+
+# Enter the directory
 cd sound-sync
+
+# Install dependencies
 npm install
 ```
 
-### 2. Environment Variables
-Create a `.env` file in the root of the project with your API keys:
+### 3️⃣ Environment Configuration
+Create a `.env` file in the root directory:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
-PORT=8085
-# Future YouTube integration variables:
-YOUTUBE_CLIENT_ID=your_youtube_client_id
-YOUTUBE_CLIENT_SECRET=your_youtube_client_secret
+PORT=3001
+# Optional YouTube Integration
+YOUTUBE_CLIENT_ID=your_id
+YOUTUBE_CLIENT_SECRET=your_secret
 ```
 
-### 3. Run the Studio
-Start both the Vite frontend and Express backend concurrently:
+### 4️⃣ Launch the Studio
 ```bash
 npm run dev
 ```
-
-Open your browser to the local URL provided by Vite (e.g. `http://localhost:5173`) to start mixing! All frontend `/api` requests will automatically be proxied to your designated backend `PORT`.
+Open **`http://localhost:5173`** to start creating.
 
 ---
 
-## Architecture & Directory Structure
+## 📂 Project Structure
+
 ```text
 sound-sync/
-├── data/
-│   ├── fonts/              # Inter OTF fonts used for FFmpeg drawtext
-│   ├── generated_images/   # Local storage for Imagen API responses
-│   ├── renders/            # The final encoded .mp4 output files
-│   └── uploads/            # Temporary storage for ingested audio tracks
-├── server/
-│   └── index.ts            # Express API, GenAI integration, and FFmpeg filter-graphs
-├── src/
-│   ├── App.tsx             # Primary Studio UI and layout configuration state
-│   └── App.css             # Vanilla CSS design tokens and layout
-└── vite.config.ts          # Dynamically linked proxy configuration
+├── data/               # Local storage for audio, images, and renders
+├── server/             # Express API & FFmpeg filter-graphs
+├── src/                # React Studio UI & Canvas state
+├── public/             # Static assets and fonts
+└── vite.config.ts      # Proxy & Build configuration
 ```
 
-## Contributing
-Contributions are extremely welcome! When creating new PRs for the FFmpeg rendering pipeline, please test across multiple audio inputs and ensure standard YouTube compatibility (`libx264`, `yuv420p`).
+---
+
+## 🤝 Contributing
+Contributions are what make the open-source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📜 License
+Distributed under the MIT License. See `LICENSE` for more information.
+
+<p align="center">Built with ❤️ for artists by AhrenFullStop</p>
