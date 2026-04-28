@@ -100,4 +100,4 @@ Contributions are what make the open-source community an amazing place to learn,
 ## 📜 License
 Distributed under the MIT License. See `LICENSE` for more information.
 
-<p align="center">Built with ❤️ for artists by AhrenFullStop</p>
+<p align="center">Built with ❤️ for Artists & AI by AhrenFullStop</p>
