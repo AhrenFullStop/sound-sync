@@ -57,6 +57,7 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  padding-bottom: 60px; /* Leave space for minimized render tray */
 }
 
 .canvas-section {
@@ -71,17 +72,20 @@
 
 .track-tabs {
   display: flex;
-  gap: 0.5rem;
+  width: 100%;
+  gap: 2px;
   margin-bottom: 1.5rem;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  overflow-y: hidden;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .track-tab {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 0.6rem 1.25rem;
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 0.7rem;
@@ -91,17 +95,19 @@
   gap: 0.5rem;
   white-space: nowrap;
   transition: all var(--transition-fast);
+  margin-bottom: -1px;
 }
 
 .track-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-main);
 }
 
 .track-tab.active {
-  background: var(--text-main);
-  color: var(--bg-color);
-  border-color: var(--text-main);
+  background: #0a0a0a;
+  color: var(--text-main);
+  border-bottom: 1px solid #0a0a0a;
+  border-top: 2px solid var(--text-main);
 }
 
 .track-tab .close-tab {
@@ -136,15 +142,36 @@
   margin-bottom: 0.5rem;
 }
 
-.preview-container {
+.preview-wrapper {
+  flex: 1;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.preview-container {
   border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;
   border: 1px solid var(--border-color);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  background: #0a0a0a;
+  background: #000;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-content-scaler {
+  width: 1920px;
+  height: 1080px;
+  flex-shrink: 0;
+  transform-origin: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .sidebar-tabs {
@@ -193,15 +220,13 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2rem;
+  /* Removed flex centering to allow robust coordinate mapping */
 }
 
 .preview-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   font-family: var(--font-display);
   font-size: 5rem;
   font-weight: 900;
@@ -209,21 +234,30 @@
   letter-spacing: -0.05em;
   text-transform: uppercase;
   text-shadow: 0 4px 20px rgba(0,0,0,0.8);
-  margin-bottom: 0.5rem;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .preview-artist {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   font-size: 1.5rem;
   font-weight: 400;
   text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-  margin-bottom: 1.5rem;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .preview-tags {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .preview-waveform {

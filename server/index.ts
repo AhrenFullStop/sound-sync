@@ -104,20 +104,26 @@ try {
         if (fs.existsSync(metaPath)) {
           try {
             const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+            if (!meta.createdAt) {
+              const titleParts = jobId.split('_');
+              const timestamp = parseInt(titleParts.pop() || '0');
+              meta.createdAt = timestamp || fs.statSync(metaPath).mtimeMs;
+            }
             renderProgress[jobId] = meta;
             return;
           } catch (e) {}
         }
 
         const titleParts = jobId.split('_');
-        titleParts.pop(); // Remove timestamp
+        const timestamp = parseInt(titleParts.pop() || '0');
         const title = titleParts.join(' ').toUpperCase();
         
         renderProgress[jobId] = {
           status: 'completed',
           progress: 'DONE',
           title: title || jobId,
-          outputPath: path.join(RENDERS_DIR, file)
+          outputPath: path.join(RENDERS_DIR, file),
+          createdAt: timestamp || fs.statSync(path.join(RENDERS_DIR, file)).mtimeMs
         };
       }
     });
@@ -128,7 +134,14 @@ try {
 
 // REST Endpoint for tracking render progress (replaces SSE)
 app.get('/api/render/jobs', (req, res) => {
-  res.json(renderProgress);
+  // Return jobs sorted by createdAt newest first
+  const sortedJobs = Object.entries(renderProgress)
+    .sort(([, a], [, b]) => (b.createdAt || 0) - (a.createdAt || 0))
+    .reduce((acc, [id, job]) => {
+      acc[id] = job;
+      return acc;
+    }, {} as Record<string, any>);
+  res.json(sortedJobs);
 });
 
 // API Routes
@@ -258,10 +271,23 @@ app.post('/api/open-file', (req, res) => {
 });
 
 app.delete('/api/file', (req, res) => {
-  const { path: filePath } = req.body;
-  if (fs.existsSync(filePath)) {
+  const { path: filePath, jobId } = req.body;
+  if (filePath && fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
   }
+  
+  if (jobId) {
+    const jsonPath = path.join(RENDERS_DIR, `${jobId}.json`);
+    if (fs.existsSync(jsonPath)) {
+      fs.unlinkSync(jsonPath);
+    }
+    const thumbPath = path.join(IMAGES_DIR, `thumb_${jobId}.jpg`);
+    if (fs.existsSync(thumbPath)) {
+      fs.unlinkSync(thumbPath);
+    }
+    delete renderProgress[jobId];
+  }
+  
   res.json({ success: true });
 });
 
@@ -613,10 +639,10 @@ app.post('/api/preview', async (req, res) => {
 
   res.json({ success: true, jobId, outputPath, message: 'Preview render started' });
 
-  const SCALE = 2;
+  const SCALE = 1;
   const titleY = (track.titlePositionY || 0) * SCALE;
-  const artistY = (track.artistPositionY || 0) * SCALE + 120;
-  const tagsY = (track.tagsPositionY || 0) * SCALE + 200; // Fixed: was -200, but tags render below artist
+  const artistY = (track.artistPositionY || 0) * SCALE;
+  const tagsY = (track.tagsPositionY || 0) * SCALE;
   const titleX = (track.titlePositionX || 0) * SCALE;
   const artistX = (track.artistPositionX || 0) * SCALE;
   const tagsX = (track.tagsPositionX || 0) * SCALE;
@@ -625,7 +651,8 @@ app.post('/api/preview', async (req, res) => {
   const tagsSize = Math.round(40 * ((track.tagsScale || 100) / 100));
   const svgFont = (f: string | undefined) => (f || 'system-ui').replace(/'/g, '"');
   const escXml = (s: string) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const displayTags = (track.tags || '').replace(/,/g, ' • ');
+  const displayTags = (track.tags || '').replace(/,/g, ' • ').toUpperCase();
+  const displayTitle = (track.title || '').toUpperCase();
   const cSize = (track.cornerSize || 60) * 2;
   const cThick = (track.cornerThickness || 6) * 2;
   const cOpacity = (track.cornerOpacity ?? 100) / 100;
@@ -642,7 +669,7 @@ app.post('/api/preview', async (req, res) => {
   if (track.waveformStyle === 'pulse') { waveMode = 'cline'; waveColor = track.waveformColor?.replace('#','') || '00FF66'; }
   else if (track.waveformColor && track.waveformColor !== '#ffffff') waveColor = track.waveformColor.replace('#','');
   const waveOpacity = (track.waveformOpacity ?? 75) / 100;
-  const waveY = 1080 - 300 - 108 + (track.waveformPositionY || 0) * 2;
+  const waveY = 1080 - 300 - 108 + (track.waveformPositionY || 0);
 
   const customTexts: any[] = Array.isArray(track.customTexts) ? track.customTexts : [];
   const customTextSvg = customTexts.map(ct => {
@@ -666,7 +693,7 @@ app.post('/api/preview', async (req, res) => {
       <path d="M ${cMargin+cSize} ${1080-cMargin} L ${cMargin} ${1080-cMargin} L ${cMargin} ${1080-cMargin-cSize}"/>
       <path d="M ${1920-cMargin-cSize} ${1080-cMargin} L ${1920-cMargin} ${1080-cMargin} L ${1920-cMargin} ${1080-cMargin-cSize}"/>
     </g>
-    <text x="${960+titleX}" y="${540+titleY}" font-family="${svgFont(track.titleFont)}" font-size="${titleSize}px" font-weight="800" fill="white" text-anchor="middle" dominant-baseline="middle">${escXml(track.title||'')}</text>
+    <text x="${960+titleX}" y="${540+titleY}" font-family="${svgFont(track.titleFont)}" font-size="${titleSize}px" font-weight="800" fill="white" text-anchor="middle" dominant-baseline="middle">${escXml(displayTitle)}</text>
     <text x="${960+artistX}" y="${540+artistY}" font-family="${svgFont(track.artistFont)}" font-size="${artistSize}px" font-weight="500" fill="white" text-anchor="middle" dominant-baseline="middle">${escXml('by '+(track.artist||''))}</text>
     <text x="${960+tagsX}" y="${540+tagsY}" font-family="${svgFont(track.tagsFont)}" font-size="${tagsSize}px" font-weight="400" fill="#aaaaaa" text-anchor="middle" dominant-baseline="middle" letter-spacing="2">${escXml(displayTags)}</text>
     ${customTextSvg}
@@ -676,7 +703,23 @@ app.post('/api/preview', async (req, res) => {
   const sharp = (await import('sharp')).default;
   try { await sharp(Buffer.from(overlaySvg)).png().toFile(textOverlayPath); } catch(e) { console.error('[Preview] SVG failed:', e); return; }
 
-  const jobState: any = { status: 'rendering', progress: '00:00:00.00', title: `[PREVIEW] ${track.title}`, outputPath, thumbnail: track.backgroundImage, isPreview: true };
+  const jobState: any = {
+    status: 'rendering',
+    progress: '00:00:00.00',
+    title: track.title,
+    artist: track.artist,
+    album: track.album,
+    genre: track.genre,
+    year: track.year,
+    comment: track.comment,
+    lyrics: track.lyrics,
+    tags: track.tags,
+    outputPath,
+    thumbnail: track.backgroundImage,
+    isPreview: true,
+    visualEffects: track.visualEffects?.filter((e: any) => e.enabled).map((e: any) => e.type) || [],
+    createdAt: Date.now()
+  };
   renderProgress[jobId] = jobState;
   fs.writeFileSync(path.join(RENDERS_DIR, `${jobId}.json`), JSON.stringify(jobState));
 
@@ -686,7 +729,8 @@ app.post('/api/preview', async (req, res) => {
       let useFrameSequence = false;
       let framesDir = '';
 
-      const hasEffects = track.visualEffects?.some((e: any) => e.enabled && (e.type === 'zoom_pulse' || e.type === 'camera_shake'));
+      const effectTypes = ['zoom_pulse', 'camera_shake', 'vignette_pulse', 'chromatic_aberration', 'displacement'];
+      const hasEffects = track.visualEffects?.some((e: any) => e.enabled && effectTypes.includes(e.type));
 
       if (hasEffects) {
         renderProgress[jobId].progress = 'Generating effect frames (preview)...';
@@ -816,11 +860,16 @@ app.post('/api/render', async (req, res) => {
     progress: '00:00:00.00', 
     title: track.title, 
     artist: track.artist,
+    album: track.album,
+    genre: track.genre,
+    year: track.year,
     comment: track.comment,
     lyrics: track.lyrics,
     tags: track.tags,
     outputPath, 
-    thumbnail: track.backgroundImage 
+    thumbnail: track.backgroundImage,
+    visualEffects: track.visualEffects?.filter((e: any) => e.enabled).map((e: any) => e.type) || [],
+    createdAt: Date.now()
   };
   renderProgress[jobId] = jobState;
   fs.writeFileSync(path.join(RENDERS_DIR, `${jobId}.json`), JSON.stringify(jobState));
@@ -832,11 +881,10 @@ app.post('/api/render', async (req, res) => {
 
   // Y offsets (relative to center 540)
   // User offsets are in preview-pixel space (~540px tall). Scale ×2 to map to 1080p.
-  const SCALE = 2;
+  const SCALE = 1;
   const titleY = (track.titlePositionY || 0) * SCALE;
-  const artistY = (track.artistPositionY || 0) * SCALE + 120;
-  // Tags default: render above title to match preview layout (tags sit above title in flex-col)
-  const tagsY = (track.tagsPositionY || 0) * SCALE + 200;
+  const artistY = (track.artistPositionY || 0) * SCALE;
+  const tagsY = (track.tagsPositionY || 0) * SCALE;
 
   // X offsets (relative to center 960) — same ×2 scale
   const titleX = (track.titlePositionX || 0) * SCALE;
@@ -882,14 +930,15 @@ app.post('/api/render', async (req, res) => {
   const waveOpacity = (track.waveformOpacity ?? 75) / 100;
   const waveGlow = (track.waveformGlow ?? 0) / 100;
   // Offset waveform from the bottom 10% (108px) + waveY * 2 for 1080p scale
-  const waveY = 1080 - 300 - 108 + (track.waveformPositionY || 0) * 2;
+  const waveY = 1080 - 300 - 108 + (track.waveformPositionY || 0);
   
-  const displayTags = (track.tags || '').replace(/,/g, ' • ');
+  const displayTags = (track.tags || '').replace(/,/g, ' • ').toUpperCase();
+  const displayTitle = (track.title || '').toUpperCase();
   
   // Create an SVG overlay instead of using drawtext
   const escXml = (s: string) => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   const safeTitleText = escXml(track.title || '');
-  const safeArtistText = escXml(`by ${track.artist || ''}`);
+  const safeArtistText = escXml(`${track.artist || ''}`);
   const safeTagsText = escXml(displayTags);
 
   // Custom text layers
@@ -925,9 +974,9 @@ app.post('/api/render', async (req, res) => {
       <path d="M ${cMargin+cSize} ${1080-cMargin} L ${cMargin} ${1080-cMargin} L ${cMargin} ${1080-cMargin-cSize}"/>
       <path d="M ${1920-cMargin-cSize} ${1080-cMargin} L ${1920-cMargin} ${1080-cMargin} L ${1920-cMargin} ${1080-cMargin-cSize}"/>
     </g>
-    <text x="${960+titleX}" y="${540+titleY}" font-family="${svgFont(track.titleFont)}" font-size="${titleSize}px" font-weight="800" fill="white" text-anchor="middle" dominant-baseline="middle">${safeTitleText}</text>
-    <text x="${960+artistX}" y="${540+artistY}" font-family="${svgFont(track.artistFont)}" font-size="${artistSize}px" font-weight="500" fill="white" text-anchor="middle" dominant-baseline="middle">${safeArtistText}</text>
-    <text x="${960+tagsX}" y="${540+tagsY}" font-family="${svgFont(track.tagsFont)}" font-size="${tagsSize}px" font-weight="400" fill="#aaaaaa" text-anchor="middle" dominant-baseline="middle" letter-spacing="2">${safeTagsText}</text>
+    <text x="${960+titleX}" y="${540+titleY}" font-family="${svgFont(track.titleFont)}" font-size="${titleSize}px" font-weight="800" fill="white" text-anchor="middle" dominant-baseline="middle">${escXml(displayTitle)}</text>
+    <text x="${960+artistX}" y="${540+artistY}" font-family="${svgFont(track.artistFont)}" font-size="${artistSize}px" font-weight="500" fill="white" text-anchor="middle" dominant-baseline="middle">${escXml(safeArtistText)}</text>
+    <text x="${960+tagsX}" y="${540+tagsY}" font-family="${svgFont(track.tagsFont)}" font-size="${tagsSize}px" font-weight="400" fill="#aaaaaa" text-anchor="middle" dominant-baseline="middle" letter-spacing="2">${escXml(displayTags)}</text>
     ${customTextSvg}
   </svg>`;
 
@@ -937,7 +986,7 @@ app.post('/api/render', async (req, res) => {
     await sharp(Buffer.from(overlaySvg)).png().toFile(textOverlayPath);
   } catch (err) {
     console.error(`[API] Failed to generate SVG text overlay:`, err);
-    renderProgress[track.id] = { status: 'error', error: 'Text rendering failed', title: track.title };
+    renderProgress[jobId] = { ...renderProgress[jobId], status: 'error', error: 'Text rendering failed' };
     return;
   }
 
@@ -947,7 +996,8 @@ app.post('/api/render', async (req, res) => {
       let useFrameSequence = false;
       let framesDir = '';
 
-      const hasEffects = track.visualEffects?.some((e: any) => e.enabled && (e.type === 'zoom_pulse' || e.type === 'camera_shake'));
+      const effectTypes = ['zoom_pulse', 'camera_shake', 'vignette_pulse', 'chromatic_aberration', 'displacement'];
+      const hasEffects = track.visualEffects?.some((e: any) => e.enabled && effectTypes.includes(e.type));
 
       if (hasEffects) {
         renderProgress[jobId].progress = 'Generating effect frames...';
@@ -1043,7 +1093,7 @@ app.post('/api/render', async (req, res) => {
       console.log('==============================================\n');
     })
     .on('progress', (progress) => {
-      renderProgress[jobId] = { status: 'rendering', progress: progress.timemark, title: track.title, outputPath, thumbnail: track.backgroundImage };
+      renderProgress[jobId] = { ...renderProgress[jobId], status: 'rendering', progress: progress.timemark };
       fs.writeFileSync(path.join(RENDERS_DIR, `${jobId}.json`), JSON.stringify(renderProgress[jobId]));
     })
     .on('stderr', (stderrLine) => {
@@ -1056,20 +1106,46 @@ app.post('/api/render', async (req, res) => {
       console.error('FFmpeg stderr output:\n', stderr);
       console.error('==============================================\n');
       
-      const jobState = { status: 'error', error: err.message, title: track.title, outputPath, thumbnail: track.backgroundImage, stderr };
+      const jobState = { ...renderProgress[jobId], status: 'error', error: err.message, stderr };
       renderProgress[jobId] = jobState;
       fs.writeFileSync(path.join(RENDERS_DIR, `${jobId}.json`), JSON.stringify(jobState));
     })
     .on('end', () => {
       console.log(`\n✅ Render complete! Saved to ${outputPath}\n`);
-      const jobState = { status: 'completed', outputPath, title: track.title, thumbnail: track.backgroundImage };
-      renderProgress[jobId] = jobState;
-      fs.writeFileSync(path.join(RENDERS_DIR, `${jobId}.json`), JSON.stringify(jobState));
-      // Optional: cleanup the text PNG here if desired
+      
+      const thumbFilename = `thumb_${jobId}.jpg`;
+      const thumbPath = path.join(IMAGES_DIR, thumbFilename);
+      
+      ffmpeg(outputPath)
+        .screenshots({
+          timestamps: ['50%'],
+          filename: thumbFilename,
+          folder: IMAGES_DIR,
+          size: '320x180'
+        })
+        .on('end', () => {
+          const stats = fs.statSync(outputPath);
+          const finalJobState = { 
+            ...renderProgress[jobId], 
+            status: 'completed', 
+            progress: 'DONE',
+            thumbnail: `/images/${thumbFilename}`,
+            filesize: stats.size
+          };
+          renderProgress[jobId] = finalJobState;
+          fs.writeFileSync(path.join(RENDERS_DIR, `${jobId}.json`), JSON.stringify(finalJobState));
+        })
+        .on('error', (err) => {
+          console.error('[Thumbnail Error]', err);
+          const stats = fs.existsSync(outputPath) ? fs.statSync(outputPath) : { size: 0 };
+          const finalJobState = { ...renderProgress[jobId], status: 'completed', progress: 'DONE', filesize: stats.size };
+          renderProgress[jobId] = finalJobState;
+          fs.writeFileSync(path.join(RENDERS_DIR, `${jobId}.json`), JSON.stringify(finalJobState));
+        });
     });
     } catch (err: any) {
       console.error('[Render] Background processing failed:', err);
-      renderProgress[jobId] = { status: 'error', error: err.message || 'Background processing failed', title: track.title, outputPath, thumbnail: track.backgroundImage };
+      renderProgress[jobId] = { ...renderProgress[jobId], status: 'error', error: err.message || 'Background processing failed' };
       fs.writeFileSync(path.join(RENDERS_DIR, `${jobId}.json`), JSON.stringify(renderProgress[jobId]));
     }
   })();

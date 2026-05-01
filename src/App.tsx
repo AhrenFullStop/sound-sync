@@ -224,6 +224,78 @@ interface Track {
   customTexts: CustomText[];
 }
 
+export interface TrackPreset {
+  id: string;
+  name: string;
+  isBase?: boolean;
+  waveformEnabled: boolean;
+  waveformStyle: string;
+  waveformAmplitude: number;
+  waveformOpacity: number;
+  waveformPositionY: number;
+  waveformThickness: number;
+  waveformColor: string;
+  waveformGlow: number;
+  waveformFreqMode: 'linear' | 'log';
+  visualEffects: EffectPreset[];
+  titleScale: number;
+  artistScale: number;
+  tagsScale: number;
+  titleFont: string;
+  artistFont: string;
+  tagsFont: string;
+  titlePositionY: number;
+  artistPositionY: number;
+  tagsPositionY: number;
+  titlePositionX: number;
+  artistPositionX: number;
+  tagsPositionX: number;
+  cornerThickness: number;
+  cornerSize: number;
+  cornerOpacity: number;
+  backdropOpacity: number;
+  backdropSpreadX: number;
+  backdropSpreadY: number;
+  backdropFalloff: number;
+  customTexts: CustomText[];
+}
+
+export const BASE_PRESET: TrackPreset = {
+  id: 'base-default',
+  name: 'Factory Default',
+  isBase: true,
+  waveformEnabled: true,
+  waveformStyle: "cline",
+  waveformAmplitude: 100,
+  waveformOpacity: 75,
+  waveformPositionY: 0,
+  waveformThickness: 2,
+  waveformColor: '#ffffff',
+  waveformGlow: 0,
+  waveformFreqMode: 'log',
+  visualEffects: [],
+  titleScale: 100,
+  artistScale: 100,
+  tagsScale: 100,
+  titleFont: 'system-ui, -apple-system, sans-serif',
+  artistFont: 'system-ui, -apple-system, sans-serif',
+  tagsFont: 'JetBrains Mono, monospace',
+  titlePositionY: 0,
+  artistPositionY: 120,
+  tagsPositionY: 200,
+  titlePositionX: 0,
+  artistPositionX: 0,
+  tagsPositionX: 0,
+  cornerThickness: 2,
+  cornerSize: 30,
+  cornerOpacity: 60,
+  backdropOpacity: 40,
+  backdropSpreadX: 80,
+  backdropSpreadY: 40,
+  backdropFalloff: 60,
+  customTexts: [],
+};
+
 interface AIModel {
   id: string;
   displayName: string;
@@ -467,24 +539,20 @@ const WaveformCanvas: React.FC<{ track: Track }> = ({ track }) => {
   }, [track.waveformStyle, track.waveformAmplitude, track.waveformThickness,
       track.waveformColor, track.waveformGlow, track.waveformFreqMode]);
 
-  const waveHeightPct = 27.8;
-  const basePosFromBottom = 10;
-  const yOffsetPct = (track.waveformPositionY / 1080) * 100;
-
   if (!(track.waveformEnabled ?? true)) return null;
 
   return (
     <canvas
       ref={canvasRef}
-      width={800}
-      height={200}
+      width={1920}
+      height={300}
       style={{
         position: 'absolute',
-        left: '5%',
-        width: '90%',
-        height: `${waveHeightPct}%`,
-        bottom: `calc(${basePosFromBottom}% - ${yOffsetPct * 2}%)`,
-        opacity: track.waveformOpacity / 100,
+        left: 0,
+        top: `${track.waveformPositionY}px`,
+        width: '100%',
+        height: '100%',
+        opacity: (track.waveformOpacity || 75) / 100,
         pointerEvents: 'none',
         zIndex: 5,
       }}
@@ -674,14 +742,14 @@ const TypographyTab: React.FC<TypographyTabProps> = ({ track, updateActiveTrack,
             <label>X Offset</label>
             <span className="mono" style={{ fontSize: '0.6rem' }}>{track.titlePositionX}px</span>
           </div>
-          <input type="range" min="-500" max="500" value={track.titlePositionX || 0} onChange={e => updateActiveTrack('titlePositionX', e.target.value)} />
+          <input type="range" min="-960" max="960" value={track.titlePositionX || 0} onChange={e => updateActiveTrack('titlePositionX', e.target.value)} />
         </div>
         <div>
           <div className="flex justify-between">
             <label>Y Offset</label>
-            <span className="mono" style={{ fontSize: '0.6rem' }}>{track.titlePositionY}px</span>
+            <span className="mono" style={{ fontSize: '0.65rem' }}>{track.titlePositionY}px</span>
           </div>
-          <input type="range" min="-300" max="300" value={track.titlePositionY} onChange={e => updateActiveTrack('titlePositionY', e.target.value)} />
+          <input type="range" min="-540" max="540" value={track.titlePositionY} onChange={e => updateActiveTrack('titlePositionY', e.target.value)} />
         </div>
       </div>
 
@@ -707,14 +775,14 @@ const TypographyTab: React.FC<TypographyTabProps> = ({ track, updateActiveTrack,
             <label>X Offset</label>
             <span className="mono" style={{ fontSize: '0.6rem' }}>{track.artistPositionX}px</span>
           </div>
-          <input type="range" min="-500" max="500" value={track.artistPositionX || 0} onChange={e => updateActiveTrack('artistPositionX', e.target.value)} />
+          <input type="range" min="-960" max="960" value={track.artistPositionX || 0} onChange={e => updateActiveTrack('artistPositionX', e.target.value)} />
         </div>
         <div>
           <div className="flex justify-between">
             <label>Y Offset</label>
-            <span className="mono" style={{ fontSize: '0.6rem' }}>{track.artistPositionY}px</span>
+            <span className="mono" style={{ fontSize: '0.65rem' }}>{track.artistPositionY}px</span>
           </div>
-          <input type="range" min="-300" max="300" value={track.artistPositionY} onChange={e => updateActiveTrack('artistPositionY', e.target.value)} />
+          <input type="range" min="-540" max="540" value={track.artistPositionY} onChange={e => updateActiveTrack('artistPositionY', e.target.value)} />
         </div>
       </div>
 
@@ -740,14 +808,14 @@ const TypographyTab: React.FC<TypographyTabProps> = ({ track, updateActiveTrack,
             <label>X Offset</label>
             <span className="mono" style={{ fontSize: '0.6rem' }}>{track.tagsPositionX}px</span>
           </div>
-          <input type="range" min="-500" max="500" value={track.tagsPositionX || 0} onChange={e => updateActiveTrack('tagsPositionX', e.target.value)} />
+          <input type="range" min="-960" max="960" value={track.tagsPositionX || 0} onChange={e => updateActiveTrack('tagsPositionX', e.target.value)} />
         </div>
         <div>
           <div className="flex justify-between">
             <label>Y Offset</label>
-            <span className="mono" style={{ fontSize: '0.6rem' }}>{track.tagsPositionY}px</span>
+            <span className="mono" style={{ fontSize: '0.65rem' }}>{track.tagsPositionY}px</span>
           </div>
-          <input type="range" min="-300" max="300" value={track.tagsPositionY} onChange={e => updateActiveTrack('tagsPositionY', e.target.value)} />
+          <input type="range" min="-540" max="540" value={track.tagsPositionY} onChange={e => updateActiveTrack('tagsPositionY', e.target.value)} />
         </div>
       </div>
 
@@ -896,11 +964,59 @@ function App() {
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'metadata' | 'ai' | 'typography' | 'visuals'>('metadata');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'metadata' | 'ai' | 'typography' | 'visuals' | 'presets'>('metadata');
+  
+  const [presets, setPresets] = useState<TrackPreset[]>(() => {
+    try {
+      const s = localStorage.getItem('soundsync_track_presets');
+      if (s) return JSON.parse(s);
+    } catch {}
+    return [BASE_PRESET];
+  });
+  const [defaultPresetId, setDefaultPresetId] = useState<string>(() => {
+    return localStorage.getItem('soundsync_default_preset_id') || 'base-default';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('soundsync_track_presets', JSON.stringify(presets));
+  }, [presets]);
+  
+  useEffect(() => {
+    localStorage.setItem('soundsync_default_preset_id', defaultPresetId);
+  }, [defaultPresetId]);
+
+  const updateActiveTrackBatch = (updates: Partial<Track>) => {
+    if (!activeTrackId) return;
+    setTracks(prev => prev.map(t => t.id === activeTrackId ? { ...t, ...updates } : t));
+  };
   
   const [renderJobs, setRenderJobs] = useState<Record<string, any>>({});
   const [trayMinimized, setTrayMinimized] = useState(false);
   const [previewJob, setPreviewJob] = useState<any>(null);
+  const [jobToDelete, setJobToDelete] = useState<{id: string, outputPath: string, title?: string} | null>(null);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+
+  useEffect(() => {
+    if (!previewContainerRef.current) return;
+
+    const updateScale = (entries: ResizeObserverEntry[]) => {
+      for (let entry of entries) {
+        const { width, height } = entry.contentRect;
+        const scale = Math.min(width / 1920, height / 1080) * 0.98; // Scale down slightly to ensure it fits nicely
+        setPreviewScale(scale);
+      }
+    };
+
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(previewContainerRef.current);
+    
+    // Initial call
+    const { width, height } = previewContainerRef.current.getBoundingClientRect();
+    setPreviewScale(Math.min(width / 1920, height / 1080) * 0.98);
+
+    return () => observer.disconnect();
+  }, []);
   const [youtubeAuth, setYoutubeAuth] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [publishForm, setPublishForm] = useState({ title: '', description: '', tags: '', privacyStatus: 'private' });
@@ -909,21 +1025,42 @@ function App() {
   useEffect(() => {
     if (previewJob && renderJobs[previewJob.id]) {
       const liveJob = renderJobs[previewJob.id];
-      const descParts = [];
-      if (liveJob.artist) descParts.push(`Produced by ${liveJob.artist}`);
-      if (liveJob.comment) descParts.push(liveJob.comment);
-      if (liveJob.lyrics) descParts.push(`\nLyrics:\n${liveJob.lyrics}`);
-      if (descParts.length === 0) descParts.push(`Generated with SoundSync Studio v3\n\nTrack: ${liveJob.title}`);
-      else descParts.push(`\nGenerated with SoundSync Studio v3`);
+      const sections = [];
+
+      // 1. Basic Info
+      const info = [];
+      if (liveJob.title) info.push(`Track: ${liveJob.title}`);
+      if (liveJob.artist) info.push(`Artist: ${liveJob.artist}`);
+      if (liveJob.album) info.push(`Album: ${liveJob.album}`);
+      if (liveJob.genre) info.push(`Genre: ${liveJob.genre}`);
+      if (liveJob.year) info.push(`Year: ${liveJob.year}`);
+      if (info.length > 0) sections.push(info.join('\n'));
+
+      // 2. Comment / Description
+      if (liveJob.comment) {
+        sections.push(liveJob.comment);
+      }
+
+      // 3. Lyrics
+      if (liveJob.lyrics) {
+        sections.push(`Lyrics:\n${liveJob.lyrics}`);
+      }
+
+      // 4. Hashtags for discoverability
+      const tagsList = liveJob.tags?.split(/[ ,•]+/).filter(Boolean) || [];
+      const hashtags = tagsList.map(t => `#${t.replace(/[^a-zA-Z0-9]/g, '')}`).filter(t => t.length > 1).join(' ');
+      if (hashtags) {
+        sections.push(hashtags);
+      }
 
       setPublishForm({
         title: liveJob.title || '',
-        description: descParts.join('\n\n').trim(),
-        tags: liveJob.tags || 'soundsync,music,visualizer',
+        description: sections.join('\n\n').trim(),
+        tags: tagsList.join(',') || 'music,visualizer,soundsync',
         privacyStatus: 'private'
       });
     }
-  }, [previewJob?.id]);
+  }, [previewJob?.id, JSON.stringify(renderJobs[previewJob?.id] || {})]);
 
   const [globalDNA, setGlobalDNA] = useState<GlobalPromptDNA>(loadDNA);
   const updateGlobalDNA = (updates: Partial<GlobalPromptDNA>) => {
@@ -1025,6 +1162,7 @@ function App() {
       const data = await response.json();
       
       if (data.success && data.tracks) {
+        const defPreset = presets.find(p => p.id === defaultPresetId) || BASE_PRESET;
         const newTracks: Track[] = data.tracks.map((t: any) => ({
           ...t,
           title: t.title || t.originalName.replace(/\.[^/.]+$/, ""),
@@ -1038,36 +1176,37 @@ function App() {
           promptConfig: makePromptConfig(globalDNA),
           aiModel: availableModels.length > 0 ? availableModels[0].id : "imagen-4.0-ultra-generate-001",
           backgroundImage: null,
-          waveformEnabled: true,
-          waveformStyle: "cline",
-          waveformAmplitude: 100,
-          waveformOpacity: 75,
-          waveformPositionY: 0,
-          waveformThickness: 2,
-          waveformColor: '#ffffff',
-          waveformGlow: 0,
-          waveformFreqMode: 'log' as const,
-          visualEffects: [] as EffectPreset[],
-          titleScale: 100,
-          artistScale: 100,
-          tagsScale: 100,
-          titleFont: 'system-ui, -apple-system, sans-serif',
-          artistFont: 'system-ui, -apple-system, sans-serif',
-          tagsFont: 'JetBrains Mono, monospace',
-          titlePositionY: 0,
-          artistPositionY: 0,
-          tagsPositionY: 0,
-          titlePositionX: 0,
-          artistPositionX: 0,
-          tagsPositionX: 0,
-          cornerThickness: 2,
-          cornerSize: 30,
-          cornerOpacity: 60,
-          backdropOpacity: 40,
-          backdropSpreadX: 80,
-          backdropSpreadY: 40,
-          backdropFalloff: 60,
-          customTexts: [],
+          
+          waveformEnabled: defPreset.waveformEnabled,
+          waveformStyle: defPreset.waveformStyle,
+          waveformAmplitude: defPreset.waveformAmplitude,
+          waveformOpacity: defPreset.waveformOpacity,
+          waveformPositionY: defPreset.waveformPositionY,
+          waveformThickness: defPreset.waveformThickness,
+          waveformColor: defPreset.waveformColor,
+          waveformGlow: defPreset.waveformGlow,
+          waveformFreqMode: defPreset.waveformFreqMode,
+          visualEffects: [...defPreset.visualEffects],
+          titleScale: defPreset.titleScale,
+          artistScale: defPreset.artistScale,
+          tagsScale: defPreset.tagsScale,
+          titleFont: defPreset.titleFont,
+          artistFont: defPreset.artistFont,
+          tagsFont: defPreset.tagsFont,
+          titlePositionY: defPreset.titlePositionY,
+          artistPositionY: defPreset.artistPositionY,
+          tagsPositionY: defPreset.tagsPositionY,
+          titlePositionX: defPreset.titlePositionX,
+          artistPositionX: defPreset.artistPositionX,
+          tagsPositionX: defPreset.tagsPositionX,
+          cornerThickness: defPreset.cornerThickness,
+          cornerSize: defPreset.cornerSize,
+          cornerOpacity: defPreset.cornerOpacity,
+          backdropOpacity: defPreset.backdropOpacity,
+          backdropSpreadX: defPreset.backdropSpreadX,
+          backdropSpreadY: defPreset.backdropSpreadY,
+          backdropFalloff: defPreset.backdropFalloff,
+          customTexts: defPreset.customTexts.map(ct => ({...ct})),
         }));
         
         setTracks(prev => [...prev, ...newTracks]);
@@ -1184,7 +1323,7 @@ function App() {
         body: JSON.stringify({
           path: job.outputPath,
           title: publishForm.title || job.title,
-          description: publishForm.description || `Generated with SoundSync Studio v3\n\nTrack: ${job.title}`,
+          description: publishForm.description || (job.title ? `Track: ${job.title}${job.artist ? `\nArtist: ${job.artist}` : ''}` : ''),
           tags: publishForm.tags || 'soundsync,music,visualizer',
           privacyStatus: publishForm.privacyStatus || 'private',
           jobId: jobId
@@ -1357,94 +1496,102 @@ function App() {
             )}
           </div>
           
-          <div className="preview-container">
-            {activeTrack?.backgroundImage ? (
-              <img src={activeTrack.backgroundImage} className="preview-bg" alt="Generated background" />
-            ) : (
-              <div className="preview-bg" style={{ background: 'linear-gradient(45deg, #0a0a0a, #1a1a1a)' }}></div>
-            )}
+          <div className="preview-wrapper" ref={previewContainerRef}>
+            <div className="preview-container" style={{ width: 1920 * previewScale, height: 1080 * previewScale }}>
+              <div className="preview-content-scaler" style={{ transform: `scale(${previewScale})` }}>
+              {activeTrack?.backgroundImage ? (
+                <img src={activeTrack.backgroundImage} className="preview-bg" alt="Generated background" />
+              ) : (
+                <div className="preview-bg" style={{ background: 'linear-gradient(45deg, #0a0a0a, #1a1a1a)' }}></div>
+              )}
 
-            {/* Text Backdrop — rendered BELOW text layers */}
-            {activeTrack && (() => {
-              const bOpacity = (activeTrack.backdropOpacity ?? 0) / 100;
-              const bSpreadX = activeTrack.backdropSpreadX ?? 80;
-              const bSpreadY = activeTrack.backdropSpreadY ?? 40;
-              const bFalloff = activeTrack.backdropFalloff ?? 60;
-              // Hold full opacity from center to falloff%, then fade to transparent at 100%
-              // Matches the SVG gradient: stop at 0% and falloff% have full opacity, 100% is transparent
-              return (
+              {/* Text Backdrop — rendered BELOW text layers */}
+              {activeTrack && (() => {
+                const bOpacity = (activeTrack.backdropOpacity ?? 0) / 100;
+                const bSpreadX = activeTrack.backdropSpreadX ?? 80;
+                const bSpreadY = activeTrack.backdropSpreadY ?? 40;
+                const bFalloff = activeTrack.backdropFalloff ?? 60;
+                return (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0, left: 0, width: '100%', height: '100%',
+                      pointerEvents: 'none',
+                      background: `radial-gradient(ellipse ${bSpreadX}% ${bSpreadY}% at center, rgba(0,0,0,${bOpacity}) 0%, rgba(0,0,0,${bOpacity}) ${bFalloff}%, transparent 100%)`,
+                      zIndex: 2,
+                    }}
+                  />
+                );
+              })()}
+              
+              {activeTrack && (
+                <>
+                  <div style={{ position: 'absolute', top: 40, left: 40, width: activeTrack.cornerSize * 2, height: activeTrack.cornerSize * 2, borderTop: `${activeTrack.cornerThickness * 2}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, borderLeft: `${activeTrack.cornerThickness * 2}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, zIndex: 10, pointerEvents: 'none' }}></div>
+                  <div style={{ position: 'absolute', top: 40, right: 40, width: activeTrack.cornerSize * 2, height: activeTrack.cornerSize * 2, borderTop: `${activeTrack.cornerThickness * 2}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, borderRight: `${activeTrack.cornerThickness * 2}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, zIndex: 10, pointerEvents: 'none' }}></div>
+                  <div style={{ position: 'absolute', bottom: 40, left: 40, width: activeTrack.cornerSize * 2, height: activeTrack.cornerSize * 2, borderBottom: `${activeTrack.cornerThickness * 2}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, borderLeft: `${activeTrack.cornerThickness * 2}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, zIndex: 10, pointerEvents: 'none' }}></div>
+                  <div style={{ position: 'absolute', bottom: 40, right: 40, width: activeTrack.cornerSize * 2, height: activeTrack.cornerSize * 2, borderBottom: `${activeTrack.cornerThickness * 2}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, borderRight: `${activeTrack.cornerThickness * 2}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, zIndex: 10, pointerEvents: 'none' }}></div>
+                </>
+              )}
+              
+              {/* Text layers — position is now robustly 1:1 with 1080p SVG */}
+              <div className="preview-overlay" style={{ zIndex: 6 }}>
+                <h2 className="preview-title" style={{
+                  transform: `translate(calc(-50% + ${activeTrack?.titlePositionX || 0}px), calc(-50% + ${activeTrack?.titlePositionY || 0}px)) scale(${activeTrack ? activeTrack.titleScale / 100 : 1})`,
+                  fontFamily: activeTrack?.titleFont || undefined,
+                  fontSize: '100px',
+                }}>
+                  {activeTrack ? activeTrack.title : "NO TRACK SELECTED"}
+                </h2>
+                <div className="preview-artist" style={{
+                  transform: `translate(calc(-50% + ${activeTrack?.artistPositionX || 0}px), calc(-50% + ${activeTrack?.artistPositionY || 0}px)) scale(${activeTrack ? activeTrack.artistScale / 100 : 1})`,
+                  fontFamily: activeTrack?.artistFont || undefined,
+                  fontSize: '50px',
+                }}>
+                  {activeTrack ? activeTrack.artist : "AhrenFullStop"}
+                </div>
+                <div className="preview-tags" style={{
+                  transform: `translate(calc(-50% + ${activeTrack?.tagsPositionX || 0}px), calc(-50% + ${activeTrack?.tagsPositionY || 0}px)) scale(${activeTrack ? activeTrack.tagsScale / 100 : 1})`,
+                  fontFamily: activeTrack?.tagsFont || undefined,
+                  fontSize: '40px',
+                }}>
+                  {activeTrack ? activeTrack.tags.replace(/,/g, ' • ') : "SYNTHWAVE • RETRO"}
+                </div>
+              </div>
+              
+              {/* Custom text overlays in preview */}
+              {activeTrack?.customTexts?.map(ct => (
                 <div
+                  key={ct.id}
                   style={{
                     position: 'absolute',
-                    top: 0, left: 0, width: '100%', height: '100%',
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(calc(-50% + ${ct.posX * (960/900)}px), calc(-50% + ${ct.posY}px))`,
+                    fontFamily: ct.font,
+                    fontSize: `${ct.size * 3.6}px`,
+                    color: ct.color,
+                    fontWeight: ct.bold ? 800 : 400,
+                    fontStyle: ct.italic ? 'italic' : 'normal',
+                    opacity: ct.opacity / 100,
                     pointerEvents: 'none',
-                    background: `radial-gradient(ellipse ${bSpreadX}% ${bSpreadY}% at center, rgba(0,0,0,${bOpacity}) 0%, rgba(0,0,0,${bOpacity}) ${bFalloff}%, transparent 100%)`,
-                    zIndex: 2,
+                    zIndex: 8,
+                    whiteSpace: 'nowrap',
+                    textShadow: '0 2px 10px rgba(0,0,0,0.8)',
+                    letterSpacing: '0.05em',
                   }}
-                />
-              );
-            })()}
-            
-            {activeTrack && (
-              <>
-                <div style={{ position: 'absolute', top: 20, left: 20, width: activeTrack.cornerSize, height: activeTrack.cornerSize, borderTop: `${activeTrack.cornerThickness}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, borderLeft: `${activeTrack.cornerThickness}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, zIndex: 10, pointerEvents: 'none' }}></div>
-                <div style={{ position: 'absolute', top: 20, right: 20, width: activeTrack.cornerSize, height: activeTrack.cornerSize, borderTop: `${activeTrack.cornerThickness}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, borderRight: `${activeTrack.cornerThickness}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, zIndex: 10, pointerEvents: 'none' }}></div>
-                <div style={{ position: 'absolute', bottom: 20, left: 20, width: activeTrack.cornerSize, height: activeTrack.cornerSize, borderBottom: `${activeTrack.cornerThickness}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, borderLeft: `${activeTrack.cornerThickness}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, zIndex: 10, pointerEvents: 'none' }}></div>
-                <div style={{ position: 'absolute', bottom: 20, right: 20, width: activeTrack.cornerSize, height: activeTrack.cornerSize, borderBottom: `${activeTrack.cornerThickness}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, borderRight: `${activeTrack.cornerThickness}px solid rgba(255,255,255,${activeTrack.cornerOpacity/100})`, zIndex: 10, pointerEvents: 'none' }}></div>
-              </>
-            )}
-            
-            {/* Text layers — zIndex 6 keeps them above the backdrop (2) */}
-            <div className="preview-overlay" style={{ zIndex: 6 }}>
-              <h2 className="preview-title" style={{
-                transform: `scale(${activeTrack ? activeTrack.titleScale / 100 : 1}) translate(${activeTrack?.titlePositionX || 0}px, ${activeTrack?.titlePositionY || 0}px)`,
-                fontFamily: activeTrack?.titleFont || undefined,
-              }}>
-                {activeTrack ? activeTrack.title : "NO TRACK SELECTED"}
-              </h2>
-              <div className="preview-artist" style={{
-                transform: `scale(${activeTrack ? activeTrack.artistScale / 100 : 1}) translate(${activeTrack?.artistPositionX || 0}px, ${activeTrack?.artistPositionY || 0}px)`,
-                fontFamily: activeTrack?.artistFont || undefined,
-              }}>
-                by {activeTrack ? activeTrack.artist : "AhrenFullStop"}
-              </div>
-              <div className="preview-tags" style={{
-                transform: `scale(${activeTrack ? activeTrack.tagsScale / 100 : 1}) translate(${activeTrack?.tagsPositionX || 0}px, ${activeTrack?.tagsPositionY || 0}px)`,
-                fontFamily: activeTrack?.tagsFont || undefined,
-              }}>
-                {activeTrack ? activeTrack.tags.replace(/,/g, ' • ') : "SYNTHWAVE • RETRO"}
-              </div>
+                >
+                  {ct.text}
+                </div>
+              ))}
+              
+              {activeTrack && (
+                <div style={{ position: 'absolute', bottom: '108px', left: 0, width: '100%', height: '300px', zIndex: 5 }}>
+                  <WaveformCanvas track={activeTrack} />
+                </div>
+              )}
             </div>
-            {/* Custom text overlays in preview */}
-            {activeTrack?.customTexts?.map(ct => (
-              <div
-                key={ct.id}
-                style={{
-                  position: 'absolute',
-                  left: '50%',
-                  top: '50%',
-                  transform: `translate(calc(-50% + ${ct.posX}px), calc(-50% + ${ct.posY}px))`,
-                  fontFamily: ct.font,
-                  fontSize: `${ct.size * 0.09}px`,
-                  color: ct.color,
-                  fontWeight: ct.bold ? 800 : 400,
-                  fontStyle: ct.italic ? 'italic' : 'normal',
-                  opacity: ct.opacity / 100,
-                  pointerEvents: 'none',
-                  zIndex: 8,
-                  whiteSpace: 'nowrap',
-                  textShadow: '0 2px 10px rgba(0,0,0,0.8)',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                {ct.text}
-              </div>
-            ))}
-            
-            {activeTrack && (
-              <WaveformCanvas track={activeTrack} />
-            )}
           </div>
+        </div>
           
           <div className="canvas-footer">
             <span>1080P NATIVE</span>
@@ -1476,6 +1623,7 @@ function App() {
             <div className={`sidebar-tab ${activeSidebarTab === 'ai' ? 'active' : ''}`} onClick={() => setActiveSidebarTab('ai')}>Background</div>
             <div className={`sidebar-tab ${activeSidebarTab === 'typography' ? 'active' : ''}`} onClick={() => setActiveSidebarTab('typography')}>Text</div>
             <div className={`sidebar-tab ${activeSidebarTab === 'visuals' ? 'active' : ''}`} onClick={() => setActiveSidebarTab('visuals')}>Visuals</div>
+            <div className={`sidebar-tab ${activeSidebarTab === 'presets' ? 'active' : ''}`} onClick={() => setActiveSidebarTab('presets')}>Presets</div>
           </div>
           
           <div className="sidebar-content" style={{ paddingTop: '1.5rem' }}>
@@ -1996,6 +2144,188 @@ function App() {
               />
             )}
 
+            {activeTrack && activeSidebarTab === 'presets' && (
+              <div className="flex-col gap-4">
+                <div style={{ marginBottom: '1rem' }}>
+                  <label>Select Preset</label>
+                  <select 
+                    value={defaultPresetId} 
+                    onChange={e => setDefaultPresetId(e.target.value)}
+                    style={{ width: '100%', padding: '0.5rem', background: 'var(--surface)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                  >
+                    {presets.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} {p.isBase ? '(Base)' : ''}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <button 
+                  className="btn-primary full-width" 
+                  onClick={() => {
+                    const preset = presets.find(p => p.id === defaultPresetId);
+                    if (preset) {
+                      updateActiveTrackBatch({
+                        waveformEnabled: preset.waveformEnabled,
+                        waveformStyle: preset.waveformStyle,
+                        waveformAmplitude: preset.waveformAmplitude,
+                        waveformOpacity: preset.waveformOpacity,
+                        waveformPositionY: preset.waveformPositionY,
+                        waveformThickness: preset.waveformThickness,
+                        waveformColor: preset.waveformColor,
+                        waveformGlow: preset.waveformGlow,
+                        waveformFreqMode: preset.waveformFreqMode,
+                        visualEffects: [...preset.visualEffects],
+                        titleScale: preset.titleScale,
+                        artistScale: preset.artistScale,
+                        tagsScale: preset.tagsScale,
+                        titleFont: preset.titleFont,
+                        artistFont: preset.artistFont,
+                        tagsFont: preset.tagsFont,
+                        titlePositionY: preset.titlePositionY,
+                        artistPositionY: preset.artistPositionY,
+                        tagsPositionY: preset.tagsPositionY,
+                        titlePositionX: preset.titlePositionX,
+                        artistPositionX: preset.artistPositionX,
+                        tagsPositionX: preset.tagsPositionX,
+                        cornerThickness: preset.cornerThickness,
+                        cornerSize: preset.cornerSize,
+                        cornerOpacity: preset.cornerOpacity,
+                        backdropOpacity: preset.backdropOpacity,
+                        backdropSpreadX: preset.backdropSpreadX,
+                        backdropSpreadY: preset.backdropSpreadY,
+                        backdropFalloff: preset.backdropFalloff,
+                        customTexts: preset.customTexts.map(ct => ({...ct})),
+                      });
+                    }
+                  }}
+                >
+                  APPLY PRESET TO TRACK
+                </button>
+
+                <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', marginTop: '1rem' }}>
+                  <label style={{ fontSize: '0.65rem', color: '#00FF66', marginBottom: '0.5rem', display: 'block', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Save Current Settings</label>
+                  <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                    Save the active track's typography and visuals as a new preset.
+                  </p>
+                  <button 
+                    className="btn-primary full-width" 
+                    style={{ backgroundColor: 'transparent', border: '1px solid #00FF66', color: '#00FF66' }}
+                    onClick={() => {
+                      const name = window.prompt("Enter name for new preset:");
+                      if (name) {
+                        const newPreset: TrackPreset = {
+                          id: Date.now().toString(),
+                          name,
+                          waveformEnabled: activeTrack.waveformEnabled,
+                          waveformStyle: activeTrack.waveformStyle,
+                          waveformAmplitude: activeTrack.waveformAmplitude,
+                          waveformOpacity: activeTrack.waveformOpacity,
+                          waveformPositionY: activeTrack.waveformPositionY,
+                          waveformThickness: activeTrack.waveformThickness,
+                          waveformColor: activeTrack.waveformColor,
+                          waveformGlow: activeTrack.waveformGlow,
+                          waveformFreqMode: activeTrack.waveformFreqMode,
+                          visualEffects: [...activeTrack.visualEffects],
+                          titleScale: activeTrack.titleScale,
+                          artistScale: activeTrack.artistScale,
+                          tagsScale: activeTrack.tagsScale,
+                          titleFont: activeTrack.titleFont,
+                          artistFont: activeTrack.artistFont,
+                          tagsFont: activeTrack.tagsFont,
+                          titlePositionY: activeTrack.titlePositionY,
+                          artistPositionY: activeTrack.artistPositionY,
+                          tagsPositionY: activeTrack.tagsPositionY,
+                          titlePositionX: activeTrack.titlePositionX,
+                          artistPositionX: activeTrack.artistPositionX,
+                          tagsPositionX: activeTrack.tagsPositionX,
+                          cornerThickness: activeTrack.cornerThickness,
+                          cornerSize: activeTrack.cornerSize,
+                          cornerOpacity: activeTrack.cornerOpacity,
+                          backdropOpacity: activeTrack.backdropOpacity,
+                          backdropSpreadX: activeTrack.backdropSpreadX,
+                          backdropSpreadY: activeTrack.backdropSpreadY,
+                          backdropFalloff: activeTrack.backdropFalloff,
+                          customTexts: activeTrack.customTexts.map(ct => ({...ct})),
+                        };
+                        setPresets(prev => [...prev, newPreset]);
+                        setDefaultPresetId(newPreset.id);
+                      }
+                    }}
+                  >
+                    SAVE AS NEW PRESET
+                  </button>
+
+                  {defaultPresetId !== 'base-default' && (
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                      <button 
+                        className="btn-primary full-width" 
+                        style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-main)', border: '1px solid var(--border-color)', fontSize: '0.65rem' }}
+                        onClick={() => {
+                          setPresets(prev => prev.map(p => {
+                            if (p.id === defaultPresetId) {
+                              return {
+                                ...p,
+                                waveformEnabled: activeTrack.waveformEnabled,
+                                waveformStyle: activeTrack.waveformStyle,
+                                waveformAmplitude: activeTrack.waveformAmplitude,
+                                waveformOpacity: activeTrack.waveformOpacity,
+                                waveformPositionY: activeTrack.waveformPositionY,
+                                waveformThickness: activeTrack.waveformThickness,
+                                waveformColor: activeTrack.waveformColor,
+                                waveformGlow: activeTrack.waveformGlow,
+                                waveformFreqMode: activeTrack.waveformFreqMode,
+                                visualEffects: [...activeTrack.visualEffects],
+                                titleScale: activeTrack.titleScale,
+                                artistScale: activeTrack.artistScale,
+                                tagsScale: activeTrack.tagsScale,
+                                titleFont: activeTrack.titleFont,
+                                artistFont: activeTrack.artistFont,
+                                tagsFont: activeTrack.tagsFont,
+                                titlePositionY: activeTrack.titlePositionY,
+                                artistPositionY: activeTrack.artistPositionY,
+                                tagsPositionY: activeTrack.tagsPositionY,
+                                titlePositionX: activeTrack.titlePositionX,
+                                artistPositionX: activeTrack.artistPositionX,
+                                tagsPositionX: activeTrack.tagsPositionX,
+                                cornerThickness: activeTrack.cornerThickness,
+                                cornerSize: activeTrack.cornerSize,
+                                cornerOpacity: activeTrack.cornerOpacity,
+                                backdropOpacity: activeTrack.backdropOpacity,
+                                backdropSpreadX: activeTrack.backdropSpreadX,
+                                backdropSpreadY: activeTrack.backdropSpreadY,
+                                backdropFalloff: activeTrack.backdropFalloff,
+                                customTexts: activeTrack.customTexts.map(ct => ({...ct})),
+                              };
+                            }
+                            return p;
+                          }));
+                          alert("Preset overwritten with current track settings.");
+                        }}
+                      >
+                        OVERWRITE
+                      </button>
+                      <button 
+                        className="btn-primary full-width" 
+                        style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid #ef4444', fontSize: '0.65rem' }}
+                        onClick={() => {
+                          if (window.confirm("Are you sure you want to delete this preset?")) {
+                            setPresets(prev => prev.filter(p => p.id !== defaultPresetId));
+                            setDefaultPresetId('base-default');
+                          }
+                        }}
+                      >
+                        DELETE
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.5rem' }}>
+                  The selected preset will be automatically applied to all newly uploaded tracks.
+                </p>
+              </div>
+            )}
+
             
           </div>
           
@@ -2025,11 +2355,13 @@ function App() {
           {Object.entries(renderJobs).length === 0 ? (
             <div style={{ padding: '20px', width: '100%', textAlign: 'center', color: 'var(--text-secondary)' }}>No renders in queue.</div>
           ) : (
-            Object.entries(renderJobs).map(([id, job]: [string, any]) => (
+            Object.entries(renderJobs)
+              .sort(([, a]: [string, any], [, b]: [string, any]) => (b.createdAt || 0) - (a.createdAt || 0))
+              .map(([id, job]: [string, any]) => (
               <div key={id} className="render-item">
-                <div className="render-item-header">
+                <div className="render-item-header" style={{ display: 'flex', alignItems: 'flex-start', width: '100%', gap: '12px' }}>
                   {job.thumbnail ? (
-                    <div className="render-item-thumb" onClick={() => job.status === 'completed' && setPreviewJob({ id, ...job })}>
+                    <div className="render-item-thumb" onClick={() => job.status === 'completed' && setPreviewJob({ id, ...job })} style={{ flexShrink: 0 }}>
                       <img src={job.thumbnail} alt="thumb" />
                       {job.status === 'completed' && (
                         <div className="thumb-overlay">
@@ -2038,25 +2370,50 @@ function App() {
                       )}
                     </div>
                   ) : (
-                    <div className="render-item-thumb empty">
+                    <div className="render-item-thumb empty" style={{ flexShrink: 0 }}>
                       <Music size={14} />
                     </div>
                   )}
-                  <span 
-                    className="render-item-title clickable" 
-                    title={job.title}
-                    onClick={() => job.status === 'completed' && setPreviewJob({ id, ...job })}
-                  >
-                    {job.title}
-                  </span>
                   
+                  <div className="render-item-info" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span 
+                        className="render-item-title clickable" 
+                        title={job.title}
+                        onClick={() => job.status === 'completed' && setPreviewJob({ id, ...job })}
+                        style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                      >
+                        {job.title}
+                      </span>
+                      {job.youtubeId && (
+                        <span style={{ fontSize: '9px', padding: '2px 6px', background: '#FF0000', color: 'white', borderRadius: '4px', fontWeight: 'bold' }}>YouTube</span>
+                      )}
+                    </div>
+                    
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span>ID: {id}</span>
+                      {job.createdAt && <span>• {new Date(job.createdAt).toLocaleString()}</span>}
+                      {job.filesize && <span>• {(job.filesize / 1024 / 1024).toFixed(1)} MB</span>}
+                    </div>
+                    
+                    {job.visualEffects && job.visualEffects.length > 0 && (
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
+                        {job.visualEffects.map((effect: string) => (
+                          <span key={effect} style={{ fontSize: '9px', padding: '2px 6px', background: 'rgba(255,255,255,0.1)', color: 'var(--text-secondary)', borderRadius: '10px', textTransform: 'capitalize' }}>
+                            {effect.replace('_', ' ')}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {job.status === 'rendering' && (
-                    <div className="render-progress-bar">
+                    <div className="render-progress-bar" style={{ flexShrink: 0, width: '100px', alignSelf: 'center', margin: '0 10px' }}>
                       <div className="render-progress-fill" style={{ width: job.progress || '100%', animation: 'pulse-opacity 1.5s infinite' }}></div>
                     </div>
                   )}
 
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0, marginLeft: 'auto' }}>
                     <span className={`render-status ${job.status}`}>
                       {(job.status === 'rendering' || job.status === 'uploading') ? (job.progress || 'PREPARING') : job.status.toUpperCase()}
                     </span>
@@ -2085,7 +2442,9 @@ function App() {
                     </button>
                   )}
                   {job.outputPath && (
-                    <button className="action-btn danger" title="Delete File" onClick={() => fetch('/api/file', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path: job.outputPath}) })}>
+                    <button className="action-btn danger" title="Delete File" onClick={() => {
+                      setJobToDelete({ id, outputPath: job.outputPath, title: job.title });
+                    }}>
                       <Trash2 size={14} />
                     </button>
                   )}
@@ -2288,6 +2647,45 @@ function App() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {jobToDelete && (
+        <div className="modal-overlay" onClick={() => setJobToDelete(null)} style={{ zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', width: '100%', padding: '24px', background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05) inset' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', flexShrink: 0, border: '1px solid rgba(239, 68, 68, 0.3)' }}>
+                <Trash2 size={24} strokeWidth={1.5} />
+              </div>
+              <div style={{ paddingTop: '4px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#fff', letterSpacing: '0.01em' }}>Delete Render</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5, marginTop: '8px', marginBottom: 0 }}>
+                  Are you sure you want to permanently delete <strong style={{ color: '#fff', fontWeight: 500 }}>{jobToDelete.title || 'this render'}</strong>? This will remove the video file and all associated metadata. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '28px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <button 
+                onClick={() => setJobToDelete(null)} 
+                style={{ padding: '8px 16px', borderRadius: '6px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-muted)', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', transition: 'all 0.2s ease' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'; (e.currentTarget as HTMLButtonElement).style.color = '#fff'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
+              >
+                Cancel
+              </button>
+              <button 
+                style={{ background: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', transition: 'background 0.2s ease', boxShadow: '0 4px 14px 0 rgba(239, 68, 68, 0.39)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#dc2626'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#ef4444'; }}
+                onClick={() => {
+                  fetch('/api/file', { method: 'DELETE', headers: {'Content-Type':'application/json'}, body: JSON.stringify({path: jobToDelete.outputPath, jobId: jobToDelete.id}) });
+                  setJobToDelete(null);
+                }}
+              >
+                Delete Permanently
+              </button>
             </div>
           </div>
         </div>

@@ -100,4 +100,14 @@ Contributions are what make the open-source community an amazing place to learn,
 ## 📜 License
 Distributed under the MIT License. See `LICENSE` for more information.
 
+---
+
+## 🤖 For AI Agents
+If you are an AI agent working on this repo, please read **[AI_SPEC.md](./AI_SPEC.md)** first. 
+
+To ensure your changes don't break the synchronization between the Frontend (Preview) and Backend (Render), always run:
+```bash
+npm run test:parity
+```
+
 <p align="center">Built with ❤️ for Artists & AI by AhrenFullStop</p>
